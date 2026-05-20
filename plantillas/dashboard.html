@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge_estado %}
+{% block title %}Panel de control — RepairHub{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<header class="page-intro">
+    <div class="kicker">
+        <span class="kicker-dot"></span>
+        <span>Panel de control</span>
+        <span class="kicker-sep">·</span>
+        <span id="kickerDate"></span>
+        <span class="kicker-sep">·</span>
+        <span>RepairHub</span>
+    </div>
+
+    <div class="page-intro-row">
+        <h1 class="page-title">
+            Resumen del <span class="accent">taller</span>
+        </h1>
+        <a href="{{ url_for('nueva_entrada') }}" class="btn btn-primary btn-lg btn-nueva-entrada">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva entrada
+        </a>
+    </div>
+
+    <p class="page-intro-sub">
+        Estado operativo, distribución de cargas y actividad reciente del periodo en curso.
+    </p>
+</header>
+
+
+<div class="dashboard-grid">
+
+    <div class="dashboard-main">
+
+        <section class="kpi-grid" aria-label="Indicadores clave">
+            <article class="kpi">
+                <div class="kpi-head">
+                    <span class="kpi-label">En curso</span>
+                    <span class="kpi-index">01</span>
+                </div>
+                <div class="kpi-value">{{ pendientes }}</div>
+                <div class="kpi-foot">Reparaciones activas pendientes de entrega</div>
+            </article>
+
+            <article class="kpi">
+                <div class="kpi-head">
+                    <span class="kpi-label">Este mes</span>
+                    <span class="kpi-index">02</span>
+                </div>
+                <div class="kpi-value">{{ este_mes }}</div>
+                <div class="kpi-foot">Entradas registradas en el periodo actual</div>
+            </article>
+
+            <article class="kpi">
+                <div class="kpi-head">
+                    <span class="kpi-label">Ingresos / mes</span>
+                    <span class="kpi-index">03</span>
+                </div>
+                <div class="kpi-value">
+                    {{ "%.0f"|format(ingresos_mes) }}<span class="unit">€</span>
+                </div>
+                <div class="kpi-foot">Facturado en reparaciones entregadas</div>
+            </article>
+
+            <article class="kpi">
+                <div class="kpi-head">
+                    <span class="kpi-label">Tiempo medio</span>
+                    <span class="kpi-index">04</span>
+                </div>
+                <div class="kpi-value">
+                    {{ tiempo_medio }}<span class="unit">días</span>
+                </div>
+                <div class="kpi-foot">Desde entrada hasta entrega al cliente</div>
+            </article>
+        </section>
+
+
+        <section class="panel">
+            <header class="panel-head">
+                <div>
+                    <span class="panel-eyebrow"><span class="num">§ 01</span> — Flujo operativo</span>
+                    <h2 class="panel-title">Reparaciones por estado</h2>
+                </div>
+                <a href="{{ url_for('reparaciones') }}" class="link-arrow">Ver todas →</a>
+            </header>
+
+            <div class="pipeline" id="pipeline"></div>
+        </section>
+
+
+        <div class="panel-row">
+            <section class="panel">
+                <header class="panel-head">
+                    <div>
+                        <span class="panel-eyebrow"><span class="num">§ 02</span> — Distribución</span>
+                        <h2 class="panel-title">Tipos de dispositivo</h2>
+                    </div>
+                </header>
+                <div class="chart-wrap">
+                    <canvas id="chartTipos"></canvas>
+                </div>
+            </section>
+
+            <section class="panel">
+                <header class="panel-head">
+                    <div>
+                        <span class="panel-eyebrow"><span class="num">§ 03</span> — Carga de trabajo</span>
+                        <h2 class="panel-title">Reparaciones por estado</h2>
+                    </div>
+                </header>
+                <div class="chart-wrap">
+                    <canvas id="chartEstados"></canvas>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+
+    <aside class="dashboard-aside">
+        <section class="panel panel-feed">
+            <header class="panel-head">
+                <div>
+                    <span class="panel-eyebrow"><span class="num">§ 04</span> — Actividad</span>
+                    <h2 class="panel-title">Últimas entradas</h2>
+                </div>
+                <a href="{{ url_for('reparaciones') }}" class="link-arrow">Todas →</a>
+            </header>
+
+            <ul class="feed-list">
+                {% for rep in ultimas %}
+                <li class="feed-item">
+                    <a href="/reparacion/{{ rep.codigo }}" class="feed-link">
+                        <div class="feed-meta">
+                            <span class="feed-code mono">{{ rep.codigo }}</span>
+                            <span class="feed-date mono">{{ rep.created_at.strftime('%d.%m') }}</span>
+                        </div>
+                        <div class="feed-client">{{ rep.cliente_nombre }}</div>
+                        <div class="feed-device">
+                            {{ rep.tipo_dispositivo }} <span class="text-muted">· {{ rep.marca }} {{ rep.modelo or '' }}</span>
+                        </div>
+                        <div class="feed-foot">
+                            {{ badge_estado(rep.estado) }}
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+
+                {% if ultimas|length == 0 %}
+                <li class="empty-state">Sin actividad reciente.</li>
+                {% endif %}
+            </ul>
+        </section>
+    </aside>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+(function() {
+    const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    const d = new Date();
+    const fecha = `${String(d.getDate()).padStart(2,'0')} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+    document.getElementById('kickerDate').textContent = fecha;
+})();
+
+const reparaciones = {{ reparaciones | tojson }};
+
+const estadosFlujo = [
+    'Recibido',
+    'Diagnosticado',
+    'Presupuesto enviado',
+    'Presupuesto aceptado',
+    'Reparando',
+    'Esperando pieza',
+    'Listo',
+    'Entregado'
+];
+
+const conteoEstados = {};
+reparaciones.forEach(r => {
+    conteoEstados[r.estado] = (conteoEstados[r.estado] || 0) + 1;
+});
+
+const pipeline = document.getElementById('pipeline');
+estadosFlujo.forEach((estado, idx) => {
+    const count = conteoEstados[estado] || 0;
+    const cell = document.createElement('div');
+    cell.className = 'pipeline-cell' + (count > 0 ? ' has-count' : ' empty');
+    cell.innerHTML = `
+        <span class="pipeline-step">${String(idx + 1).padStart(2, '0')}</span>
+        <span class="pipeline-label">${estado}</span>
+        <span class="pipeline-count">${count}</span>
+    `;
+    pipeline.appendChild(cell);
+});
+
+const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+const inkPrimary = isDark ? '#EFEDE5' : '#111110';
+const inkMuted   = isDark ? '#8A867B' : '#6E6B62';
+const ruleColor  = isDark ? '#26251F' : '#DCD7CB';
+const accent     = isDark ? '#7AA0D9' : '#1B3A6F';
+
+const paletaCalida = isDark
+    ? ['#7AA0D9', '#A8C2E2', '#C9DBEC', '#9AAA85', '#C5C2B8', '#8A867B']
+    : ['#1B3A6F', '#3F6CA8', '#7A95C9', '#5B6B7A', '#8A867B', '#C9C5B8'];
+
+Chart.defaults.font.family = "'Maven Pro', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = inkMuted;
+Chart.defaults.borderColor = ruleColor;
+
+const conteoTipos = {};
+reparaciones.forEach(r => {
+    conteoTipos[r.tipo_dispositivo] = (conteoTipos[r.tipo_dispositivo] || 0) + 1;
+});
+
+new Chart(document.getElementById('chartTipos'), {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(conteoTipos),
+        datasets: [{
+            data: Object.values(conteoTipos),
+            backgroundColor: paletaCalida.slice(0, Object.keys(conteoTipos).length),
+            borderColor: isDark ? '#141413' : '#FBFAF6',
+            borderWidth: 3,
+            hoverOffset: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    boxWidth: 12,
+                    boxHeight: 12,
+                    padding: 14,
+                    font: { size: 13, family: "'Maven Pro', sans-serif", weight: 500 },
+                    color: inkPrimary,
+                    usePointStyle: true,
+                    pointStyle: 'rect'
+                }
+            },
+            tooltip: {
+                backgroundColor: inkPrimary,
+                titleColor: isDark ? '#0E0E0D' : '#FBFAF6',
+                bodyColor: isDark ? '#0E0E0D' : '#FBFAF6',
+                titleFont: { family: "'JetBrains Mono', monospace", size: 11, weight: '500' },
+                bodyFont: { family: "'Maven Pro', sans-serif", size: 13 },
+                padding: 11,
+                cornerRadius: 4,
+                displayColors: false
+            }
+        }
+    }
+});
+
+new Chart(document.getElementById('chartEstados'), {
+    type: 'bar',
+    data: {
+        labels: Object.keys(conteoEstados),
+        datasets: [{
+            data: Object.values(conteoEstados),
+            backgroundColor: accent,
+            hoverBackgroundColor: isDark ? '#A8C2E2' : '#142D54',
+            borderRadius: 3,
+            barThickness: 22
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: inkPrimary,
+                titleColor: isDark ? '#0E0E0D' : '#FBFAF6',
+                bodyColor: isDark ? '#0E0E0D' : '#FBFAF6',
+                titleFont: { family: "'JetBrains Mono', monospace", size: 11 },
+                bodyFont: { family: "'Maven Pro', sans-serif", size: 13 },
+                padding: 11,
+                cornerRadius: 4,
+                displayColors: false
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                ticks: { stepSize: 1, color: inkMuted, font: { family: "'JetBrains Mono', monospace", size: 11 } },
+                grid: { color: ruleColor, drawTicks: false },
+                border: { display: false }
+            },
+            y: {
+                ticks: { color: inkPrimary, font: { family: "'Maven Pro', sans-serif", size: 12.5, weight: 500 } },
+                grid: { display: false },
+                border: { color: ruleColor }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

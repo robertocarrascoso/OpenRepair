@@ -1,0 +1,30 @@
+# Contexto interno — no publicar
+CLAUDE.md
+
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+venv/
+.venv/
+env/
+
+# Datos / DB local
+*.sqlite3
+*.db
+
+# Salida generada (PDFs, CSVs de prueba)
+*.pdf
+*.csv
+
+# Herramientas / SO
+.DS_Store
+.idea/
+.vscode/
+*.log

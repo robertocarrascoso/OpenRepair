@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge_estado %}
+{% block title %}{{ cliente.nombre }} — RepairHub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ cliente.nombre }}</h1>
+    <a href="{{ url_for('editar_cliente', id=cliente.id) }}" class="btn btn-secondary">Editar</a>
+</div>
+
+<div class="card">
+    <p>Teléfono: {{ cliente.telefono or '—' }}</p>
+    <p>Email: {{ cliente.email or '—' }}</p>
+    <p>Alta: {{ cliente.created_at.strftime('%d/%m/%Y') }}</p>
+    <p>Gasto total: {{ "%.2f"|format(gasto_total) }} €</p>
+    <p>Total reparaciones: {{ reparaciones|length }}</p>
+</div>
+
+<h2>Historial de reparaciones</h2>
+<div class="table-responsive">
+    <table>
+        <thead>
+            <tr><th>Código</th><th>Dispositivo</th><th>Avería</th><th>Estado</th><th>Fecha</th></tr>
+        </thead>
+        <tbody>
+            {% for rep in reparaciones %}
+            <tr>
+                <td><a href="/reparacion/{{ rep.codigo }}">{{ rep.codigo }}</a></td>
+                <td>{{ rep.tipo_dispositivo }} {{ rep.marca }}</td>
+                <td>{{ rep.averia[:40] }}...</td>
+                <td>{{ badge_estado(rep.estado) }}</td>
+                <td>{{ rep.created_at.strftime('%d/%m/%Y') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

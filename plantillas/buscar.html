@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Buscar — RepairHub{% endblock %}
+
+{% block content %}
+<h1>Buscar</h1>
+
+<div class="form-group">
+    <input type="text" id="campo-busqueda" placeholder="Buscar por código, nombre o teléfono..." autofocus>
+</div>
+
+<div id="resultados-busqueda"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const campo = document.getElementById('campo-busqueda');
+const resultados = document.getElementById('resultados-busqueda');
+let timeout;
+
+campo.addEventListener('input', () => {
+    clearTimeout(timeout);
+    const q = campo.value.trim();
+    if (q.length < 2) { resultados.innerHTML = ''; return; }
+
+    timeout = setTimeout(() => {
+        fetch(`/api/buscar?q=${encodeURIComponent(q)}`)
+            .then(res => res.json())
+            .then(data => {
+                let html = '';
+
+                if (data.reparaciones.length > 0) {
+                    html += '<h2>Reparaciones</h2><div class="table-responsive"><table>';
+                    html += '<thead><tr><th>Código</th><th>Cliente</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody>';
+                    data.reparaciones.forEach(r => {
+                        html += `<tr>
+                            <td><a href="/reparacion/${r.codigo}">${r.codigo}</a></td>
+                            <td>${r.cliente_nombre || ''}</td>
+                            <td>${r.tipo_dispositivo} ${r.marca || ''}</td>
+                            <td>${r.estado}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table></div>';
+                }
+
+                if (data.clientes.length > 0) {
+                    html += '<h2>Clientes</h2><div class="table-responsive"><table>';
+                    html += '<thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th></tr></thead><tbody>';
+                    data.clientes.forEach(c => {
+                        html += `<tr>
+                            <td><a href="/cliente/${c.id}">${c.nombre}</a></td>
+                            <td>${c.telefono || '—'}</td>
+                            <td>${c.email || '—'}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table></div>';
+                }
+
+                if (!html) html = '<p style="color: var(--text-muted);">Sin resultados</p>';
+                resultados.innerHTML = html;
+            });
+    }, 300);
+});
+</script>
+{% endblock %}

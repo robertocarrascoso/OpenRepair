@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Editar {{ rep.codigo }} — RepairHub{% endblock %}
+
+{% block content %}
+<h1>Editar {{ rep.codigo }}</h1>
+
+<div class="card">
+    <form method="POST">
+        <div class="form-group">
+            <label for="tipo_dispositivo">Tipo de dispositivo *</label>
+            <select name="tipo_dispositivo" id="tipo_dispositivo" required>
+                {% for tipo in ['Móvil', 'Portátil', 'Sobremesa', 'Tablet', 'Consola', 'Otro'] %}
+                <option value="{{ tipo }}" {% if rep.tipo_dispositivo == tipo %}selected{% endif %}>{{ tipo }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="marca">Marca</label>
+            <input type="text" name="marca" id="marca" value="{{ rep.marca }}">
+        </div>
+
+        <div class="form-group">
+            <label for="modelo">Modelo</label>
+            <input type="text" name="modelo" id="modelo" value="{{ rep.modelo }}">
+        </div>
+
+        <div class="form-group">
+            <label for="averia">Avería *</label>
+            <textarea name="averia" id="averia" rows="3" required>{{ rep.averia }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="observaciones">Observaciones</label>
+            <textarea name="observaciones" id="observaciones" rows="3">{{ rep.observaciones or '' }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+            <a href="{{ url_for('detalle_reparacion', codigo=rep.codigo) }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

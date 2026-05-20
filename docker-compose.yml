@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-repairhub}
+      MARIADB_USER: ${DB_USER:-repairhub_user}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-repairhub}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
+    volumes:
+      - db_data:/var/lib/mysql
+      # schema.sql se ejecuta SOLO la primera vez (volumen vacío)
+      - ./base-de-datos/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:-repairhub}
+      DB_USER: ${DB_USER:-repairhub_user}
+      DB_PASSWORD: ${DB_PASSWORD:-repairhub}
+      SECRET_KEY: ${SECRET_KEY:-cambia-esta-clave}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:

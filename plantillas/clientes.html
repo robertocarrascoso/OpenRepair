@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Clientes — RepairHub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Clientes <span class="text-muted">({{ total }})</span></h1>
+</div>
+
+<div class="table-responsive">
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Reparaciones</th>
+                <th>Alta</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in clientes %}
+            <tr>
+                <td><a href="/cliente/{{ c.id }}">{{ c.nombre }}</a></td>
+                <td>{{ c.telefono or '—' }}</td>
+                <td>{{ c.email or '—' }}</td>
+                <td>{{ c.n_reparaciones }}</td>
+                <td>{{ c.created_at.strftime('%d/%m/%Y') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if total_pages > 1 %}
+<nav class="paginacion">
+    {% if page > 1 %}
+    <a href="{{ url_for('clientes', page=page-1) }}" class="btn btn-secondary btn-sm">&laquo; Anterior</a>
+    {% endif %}
+
+    <span class="paginacion-info">Página {{ page }} de {{ total_pages }}</span>
+
+    {% if page < total_pages %}
+    <a href="{{ url_for('clientes', page=page+1) }}" class="btn btn-secondary btn-sm">Siguiente &raquo;</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

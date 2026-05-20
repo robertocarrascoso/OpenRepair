@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge_estado %}
+{% block title %}{{ rep.codigo }} — RepairHub{% endblock %}
+
+{% block content %}
+<h1>{{ rep.codigo }}</h1>
+{{ badge_estado(rep.estado) }}
+
+<div class="detalle-grid">
+    <div class="card">
+        <h3>Cliente</h3>
+        <p><strong>{{ rep.cliente_nombre }}</strong></p>
+        {% if rep.cliente_telefono %}<p>Tel: {{ rep.cliente_telefono }}</p>{% endif %}
+        {% if rep.cliente_email %}<p>Email: {{ rep.cliente_email }}</p>{% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Dispositivo</h3>
+        <p>{{ rep.tipo_dispositivo }} — {{ rep.marca }} {{ rep.modelo }}</p>
+        <p><strong>Avería:</strong> {{ rep.averia }}</p>
+        {% if rep.observaciones %}<p><strong>Obs:</strong> {{ rep.observaciones }}</p>{% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Presupuesto / Precio</h3>
+        <p>Presupuesto: {{ rep.presupuesto if rep.presupuesto else '—' }} €</p>
+        <p>Precio final: {{ rep.precio_final if rep.precio_final else '—' }} €</p>
+
+        {% if rep.estado == 'Diagnosticado' %}
+            <form method="POST" action="/reparacion/{{ rep.codigo }}/presupuesto">
+                <div class="form-group">
+                    <label>Importe presupuesto (€)</label>
+                    <input type="number" name="presupuesto" step="0.01" min="0" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Enviar presupuesto</button>
+            </form>
+        {% endif %}
+
+        {% if rep.estado == 'Listo' and not rep.precio_final %}
+            <form method="POST" action="/reparacion/{{ rep.codigo }}/precio-final">
+                <div class="form-group">
+                    <label>Precio final (€)</label>
+                    <input type="number" name="precio_final" step="0.01" min="0"
+                           value="{{ rep.presupuesto or '' }}" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Guardar precio</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+{% if estados_posibles %}
+<div class="acciones-estado">
+    <h3>Cambiar estado</h3>
+    <form method="POST" action="/reparacion/{{ rep.codigo }}/cambiar-estado" class="form-estado-inline">
+        <div class="form-group">
+            <select name="nuevo_estado" required>
+                <option value="" disabled selected>Seleccionar estado...</option>
+                {% for estado in estados_posibles %}
+                <option value="{{ estado }}">{{ estado }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Cambiar estado</button>
+    </form>
+</div>
+{% endif %}
+
+<div class="acciones-reparacion">
+    <a href="/pdf/{{ rep.codigo }}" class="btn btn-secondary" target="_blank">Reimprimir PDF</a>
+    <a href="{{ url_for('editar_reparacion', codigo=rep.codigo) }}" class="btn btn-secondary">Editar datos</a>
+    <button type="button" class="btn btn-danger" onclick="document.getElementById('modal-eliminar').style.display='flex'">Eliminar</button>
+</div>
+
+<div id="modal-eliminar" class="modal-overlay" style="display:none">
+    <div class="modal">
+        <p class="modal-code">{{ rep.codigo }}</p>
+        <p class="modal-msg">¿Seguro que quieres eliminar esta reparación? Esta acción no se puede deshacer.</p>
+        <div class="modal-actions">
+            <form method="POST" action="{{ url_for('eliminar_reparacion', codigo=rep.codigo) }}">
+                <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+            </form>
+            <button type="button" class="modal-close" onclick="document.getElementById('modal-eliminar').style.display='none'">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<h2>Historial</h2>
+<div class="table-responsive">
+    <table>
+        <thead><tr><th>Estado</th><th>Técnico</th><th>Fecha</th></tr></thead>
+        <tbody>
+            {% for h in historial %}
+            <tr>
+                <td>{{ badge_estado(h.estado) }}</td>
+                <td>{{ h.tecnico or '—' }}</td>
+                <td>{{ h.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Nueva entrada — RepairHub{% endblock %}
+
+{% block content %}
+<h1>Nueva entrada</h1>
+
+{% if request.args.get('pdf') %}
+{% set pdf_codigo = request.args.get('pdf') %}
+<div id="modal-overlay" class="modal-overlay">
+    <div class="modal">
+        <p class="modal-code">{{ pdf_codigo }}</p>
+        <p class="modal-msg">Creado correctamente.</p>
+        <div class="modal-actions">
+            <a href="{{ url_for('ver_pdf', codigo=pdf_codigo) }}" target="_blank" class="btn btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Descargar {{ pdf_codigo }}.pdf
+            </a>
+            <button type="button" class="btn btn-secondary" onclick="var w=window.open('{{ url_for('ver_pdf', codigo=pdf_codigo) }}','_blank');if(w)setTimeout(function(){w.print()},1000);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Imprimir resguardo
+            </button>
+        </div>
+        <button type="button" class="btn modal-close" onclick="document.getElementById('modal-overlay').remove()">Cerrar</button>
+    </div>
+</div>
+{% endif %}
+
+<form method="POST" action="{{ url_for('nueva_entrada') }}" class="form-nueva-entrada">
+
+    <h2>Datos del cliente</h2>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="nombre">Nombre *</label>
+            <input type="text" id="nombre" name="nombre" required placeholder="Nombre del cliente">
+        </div>
+        <div class="form-group">
+            <label for="telefono">Teléfono</label>
+            <input type="tel" id="telefono" name="telefono" placeholder="612 345 678">
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="cliente@email.com">
+        </div>
+    </div>
+    <p class="form-hint">* Al menos un dato de contacto (teléfono o email)</p>
+
+    <h2>Datos del dispositivo</h2>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="tipo_dispositivo">Tipo de dispositivo *</label>
+            <select id="tipo_dispositivo" name="tipo_dispositivo" required>
+                <option value="">Seleccionar...</option>
+                <option value="Móvil">Móvil</option>
+                <option value="Tablet">Tablet</option>
+                <option value="Portátil">Portátil</option>
+                <option value="Ordenador">Ordenador</option>
+                <option value="Consola">Consola</option>
+                <option value="Otro">Otro</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="marca">Marca</label>
+            <input type="text" id="marca" name="marca" placeholder="Samsung, Apple, HP...">
+        </div>
+        <div class="form-group">
+            <label for="modelo">Modelo</label>
+            <input type="text" id="modelo" name="modelo" placeholder="Galaxy S23, iPhone 14...">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="averia">Descripción de la avería *</label>
+        <textarea id="averia" name="averia" required placeholder="Describir el problema del dispositivo..."></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="observaciones">Observaciones / Estado estético</label>
+        <textarea id="observaciones" name="observaciones" placeholder="Golpes, arañazos, accesorios entregados..."></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Dar entrada y generar resguardo</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+{% if request.args.get('pdf') %}
+<script>
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var overlay = document.getElementById('modal-overlay');
+            if (overlay) overlay.remove();
+        }
+    });
+    document.getElementById('modal-overlay').addEventListener('click', function(e) {
+        if (e.target === this) this.remove();
+    });
+</script>
+{% endif %}
+{% endblock %}

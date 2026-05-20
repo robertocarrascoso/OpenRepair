@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge_estado %}
+{% block title %}Reparaciones — RepairHub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Reparaciones <span class="text-muted">({{ total }})</span></h1>
+    <a href="{{ url_for('exportar_csv', estado=filtro_actual, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta, tipo_dispositivo=tipo_dispositivo, cliente=cliente) }}" class="btn btn-secondary btn-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar CSV
+    </a>
+</div>
+
+<div class="filtros">
+    {% set estados = ['todos', 'Recibido', 'Diagnosticado', 'Presupuesto enviado', 'Presupuesto aceptado', 'Reparando', 'Esperando pieza', 'Listo', 'Entregado'] %}
+    {% for est in estados %}
+        <a href="{{ url_for('reparaciones', estado=est, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta, tipo_dispositivo=tipo_dispositivo, cliente=cliente) }}"
+           class="btn {% if filtro_actual == est %}btn-primary{% else %}btn-secondary{% endif %}">
+            {{ est|capitalize }}
+        </a>
+    {% endfor %}
+</div>
+
+<div class="filtros-avanzados card">
+    <form method="GET" action="{{ url_for('reparaciones') }}" class="filtros-form">
+        <input type="hidden" name="estado" value="{{ filtro_actual }}">
+        <div class="form-group">
+            <label>Desde</label>
+            <input type="date" name="fecha_desde" value="{{ fecha_desde }}">
+        </div>
+        <div class="form-group">
+            <label>Hasta</label>
+            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}">
+        </div>
+        <div class="form-group">
+            <label>Tipo dispositivo</label>
+            <select name="tipo_dispositivo">
+                <option value="">Todos</option>
+                {% for tipo in tipos_dispositivo %}
+                <option value="{{ tipo }}" {% if tipo_dispositivo == tipo %}selected{% endif %}>{{ tipo }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Cliente</label>
+            <input type="text" name="cliente" value="{{ cliente }}" placeholder="Nombre del cliente">
+        </div>
+        <div class="filtros-form-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+            <a href="{{ url_for('reparaciones') }}" class="btn btn-secondary btn-sm">Limpiar</a>
+        </div>
+    </form>
+</div>
+
+<div class="table-responsive">
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Cliente</th>
+                <th>Dispositivo</th>
+                <th>Avería</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rep in reparaciones %}
+            <tr>
+                <td><a href="/reparacion/{{ rep.codigo }}">{{ rep.codigo }}</a></td>
+                <td>{{ rep.cliente_nombre }}</td>
+                <td>{{ rep.tipo_dispositivo }} {{ rep.marca }}</td>
+                <td>{{ rep.averia[:40] }}{% if rep.averia|length > 40 %}...{% endif %}</td>
+                <td>{{ badge_estado(rep.estado) }}</td>
+                <td>{{ rep.created_at.strftime('%d/%m/%Y') }}</td>
+            </tr>
+            {% endfor %}
+
+            {% if reparaciones|length == 0 %}
+            <tr><td colspan="6" class="empty-state">No hay reparaciones</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% if total_pages > 1 %}
+<nav class="paginacion">
+    {% if page > 1 %}
+    <a href="{{ url_for('reparaciones', page=page-1, estado=filtro_actual, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta, tipo_dispositivo=tipo_dispositivo, cliente=cliente) }}" class="btn btn-secondary btn-sm">&laquo; Anterior</a>
+    {% endif %}
+
+    <span class="paginacion-info">Página {{ page }} de {{ total_pages }}</span>
+
+    {% if page < total_pages %}
+    <a href="{{ url_for('reparaciones', page=page+1, estado=filtro_actual, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta, tipo_dispositivo=tipo_dispositivo, cliente=cliente) }}" class="btn btn-secondary btn-sm">Siguiente &raquo;</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}
