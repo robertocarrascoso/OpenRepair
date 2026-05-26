@@ -1,8 +1,8 @@
-CREATE DATABASE IF NOT EXISTS repairhub
+CREATE DATABASE IF NOT EXISTS openrepair
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_general_ci;
 
-USE repairhub;
+USE openrepair;
 
 -- Tabla de usuarios (login)
 CREATE TABLE usuarios (

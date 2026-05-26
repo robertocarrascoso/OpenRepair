@@ -20,7 +20,7 @@ def generar_pdf(datos, output_path):
     y = h - margen
 
     c.setFont("Helvetica-Bold", 18)
-    c.drawString(margen, y, "RepairHub")
+    c.drawString(margen, y, "OpenRepair")
     y -= 0.6 * cm
     c.setFont("Helvetica", 9)
     c.setFillColorRGB(0.4, 0.4, 0.4)
@@ -83,7 +83,7 @@ def generar_pdf(datos, output_path):
         "CONDICIONES DE SERVICIO:",
         "1. El plazo de recogida es de 30 días desde la notificación de finalización.",
         "2. El presupuesto no incluye IVA salvo que se indique expresamente.",
-        "3. RepairHub no se hace responsable de datos almacenados en el dispositivo.",
+        "3. OpenRepair no se hace responsable de datos almacenados en el dispositivo.",
         "4. Este resguardo es necesario para la recogida del dispositivo."
     ]
     for linea in condiciones:
@@ -121,7 +121,7 @@ def generar_pdf(datos, output_path):
     c.drawString(etiqueta_x + 0.5 * cm, ey, datos['codigo'])
 
     c.setFont("Helvetica-Bold", 9)
-    c.drawRightString(w - margen - 0.5 * cm, ey, "RepairHub")
+    c.drawRightString(w - margen - 0.5 * cm, ey, "OpenRepair")
     ey -= 1 * cm
 
     c.setFont("Helvetica", 11)

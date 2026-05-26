@@ -19,8 +19,8 @@ for tabla in TABLAS:
     cursor.execute(f"ALTER TABLE {tabla} AUTO_INCREMENT = 1")
 
 usuarios = [
-    ('Administrador', 'admin@repairhub.com', 'admin123', 'admin'),
-    ('Roberto', 'roberto@repairhub.com', 'tecnico123', 'tecnico'),
+    ('Administrador', 'admin@openrepair.com', 'admin123', 'admin'),
+    ('Roberto', 'roberto@openrepair.com', 'tecnico123', 'tecnico'),
 ]
 for nombre, email, password, rol in usuarios:
     cursor.execute(

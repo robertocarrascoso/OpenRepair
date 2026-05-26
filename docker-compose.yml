@@ -3,9 +3,9 @@ services:
     image: mariadb:11
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: ${DB_NAME:-repairhub}
-      MARIADB_USER: ${DB_USER:-repairhub_user}
-      MARIADB_PASSWORD: ${DB_PASSWORD:-repairhub}
+      MARIADB_DATABASE: ${DB_NAME:-openrepair}
+      MARIADB_USER: ${DB_USER:-openrepair_user}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-openrepair}
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
     volumes:
       - db_data:/var/lib/mysql
@@ -24,9 +24,9 @@ services:
       - "${PORT:-8000}:8000"
     environment:
       DB_HOST: db
-      DB_NAME: ${DB_NAME:-repairhub}
-      DB_USER: ${DB_USER:-repairhub_user}
-      DB_PASSWORD: ${DB_PASSWORD:-repairhub}
+      DB_NAME: ${DB_NAME:-openrepair}
+      DB_USER: ${DB_USER:-openrepair_user}
+      DB_PASSWORD: ${DB_PASSWORD:-openrepair}
       SECRET_KEY: ${SECRET_KEY:-cambia-esta-clave}
     depends_on:
       db:

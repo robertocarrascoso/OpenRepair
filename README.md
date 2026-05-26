@@ -44,8 +44,8 @@ Credenciales de demo:
 
 | Rol     | Email                  | Contraseña   |
 |---------|------------------------|--------------|
-| admin   | `admin@repairhub.com`  | `admin123`   |
-| técnico | `roberto@repairhub.com`| `tecnico123` |
+| admin   | `admin@openrepair.com`  | `admin123`   |
+| técnico | `roberto@openrepair.com`| `tecnico123` |
 
 > ⚠️ **Cámbialas antes de usar en producción.** El seed borra y recrea los datos cada vez que se ejecuta.
 
