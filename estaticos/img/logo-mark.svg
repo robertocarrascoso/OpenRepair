@@ -1,0 +1,15 @@
+<svg width="240" height="200" viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OpenRepair">
+  <!-- chevron < (bracket de codigo) -->
+  <path d="M120 44 L60 100 L120 156"
+        stroke="#1F2A3D" stroke-width="24"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- llave: mango navy -->
+  <path d="M120 166 L162 90"
+        stroke="#1F2A3D" stroke-width="24" stroke-linecap="round"/>
+
+  <!-- llave: cabeza naranja, boca abierta (C) -->
+  <path d="M182.5 46.4 A26 26 0 1 0 203.6 67.5"
+        stroke="#F2A21C" stroke-width="21"
+        stroke-linecap="round" fill="none"/>
+</svg>

@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#2563EB"/>
-  <text x="16" y="23" font-family="Inter,system-ui,sans-serif" font-size="18" font-weight="700" fill="white" text-anchor="middle">R</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none" role="img" aria-label="OpenRepair">
+  <rect width="240" height="240" rx="54" fill="#1F2A3D"/>
+  <g transform="translate(8,18)">
+    <path d="M120 44 L60 100 L120 156" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M120 166 L162 90" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+    <path d="M182.5 46.4 A26 26 0 1 0 203.6 67.5" stroke="#F2A21C" stroke-width="21" stroke-linecap="round" fill="none"/>
+  </g>
 </svg>
