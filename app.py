@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session, Response
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from config import DB_CONFIG, SECRET_KEY
+from config import DB_CONFIG, SECRET_KEY, ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NOMBRE
 from utilidades.pdf_generator import generar_pdf
 from datetime import datetime, date
 import csv
@@ -40,6 +40,47 @@ def admin_required(f):
 def get_db():
     import mysql.connector
     return mysql.connector.connect(**DB_CONFIG)
+
+
+def ensure_admin():
+    """Crea el admin inicial en el primer arranque si la tabla de usuarios está vacía.
+
+    Idempotente: no inserta nada si ya existe algún usuario. Reintenta unos
+    segundos porque la base de datos puede tardar en aceptar conexiones.
+    """
+    import time
+    import mysql.connector
+
+    for intento in range(30):
+        try:
+            db = get_db()
+            cursor = db.cursor()
+            cursor.execute("SELECT COUNT(*) FROM usuarios")
+            if cursor.fetchone()[0] == 0:
+                cursor.execute(
+                    "INSERT INTO usuarios (nombre, email, password_hash, rol) "
+                    "VALUES (%s, %s, %s, 'admin')",
+                    (ADMIN_NOMBRE, ADMIN_EMAIL, generate_password_hash(ADMIN_PASSWORD)),
+                )
+                db.commit()
+                print(f"[OpenRepair] Admin inicial creado: {ADMIN_EMAIL}", flush=True)
+                if ADMIN_PASSWORD == 'admin123':
+                    print("\n".join([
+                        "[OpenRepair] " + "=" * 60,
+                        "[OpenRepair] AVISO: usando la contraseña por defecto 'admin123'.",
+                        "[OpenRepair] Cámbiala YA desde el panel o define ADMIN_PASSWORD",
+                        "[OpenRepair] antes de exponer la app a internet.",
+                        "[OpenRepair] " + "=" * 60,
+                    ]), flush=True)
+            cursor.close()
+            db.close()
+            return
+        except mysql.connector.Error as e:
+            # Otro worker pudo crearlo a la vez (email es UNIQUE) o la DB aún arranca.
+            if getattr(e, 'errno', None) == 1062:  # ER_DUP_ENTRY
+                return
+            time.sleep(1)
+    print("[OpenRepair] No se pudo verificar el admin inicial (DB no disponible).")
 
 
 def _construir_where_filtros(filtro, fecha_desde, fecha_hasta, tipo_dispositivo, cliente_nombre):
@@ -753,6 +794,12 @@ def eliminar_usuario(id):
     db.close()
     flash(f'Usuario "{usuario["nombre"]}" eliminado.', 'success')
     return redirect(url_for('admin_panel'))
+
+
+# Crea el admin inicial al importar (gunicorn) o al ejecutar directamente.
+# Desactivable con SEED_ADMIN=false.
+if os.getenv('SEED_ADMIN', 'true').lower() != 'false':
+    ensure_admin()
 
 
 if __name__ == '__main__':
